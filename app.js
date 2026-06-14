@@ -1,16 +1,18 @@
 const API = 'https://ziva-core-backend-production-fb94.up.railway.app';
 const ZID = 'test-zid-001';
+
 let state = {
   dashboard: null,
   history: [],
   vault: null,
+  profile: null,
   view: 'dashboard'
 };
 
 const app = document.getElementById('app');
 
 // ================= INIT =================
-document.addEventListener('DOMContentLoaded', init); 
+document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   bindNav();
@@ -20,11 +22,7 @@ async function init() {
 
 // ================= API =================
 async function api(path, options = {}) {
-  const url = `${API}${path}`;
-
-  console.log('[API CALL]', url); // 👈 DEBUG
-
-  const res = await fetch(url, {
+  const res = await fetch(`${API}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options
   });
@@ -34,41 +32,24 @@ async function api(path, options = {}) {
     throw new Error('API error');
   }
 
-  const data = await res.json();
-  console.log('[API RESPONSE]', data); // 👈 DEBUG
-
-  return data;
+  return res.json();
 }
 
+// ================= LOAD DATA =================
 async function loadData() {
   try {
-    dashboardData = await fetch(`${API}/breg/dashboard/${ZID}`).then(r => r.json());
-    historyData = await fetch(`${API}/breg/history/${ZID}`).then(r => r.json());
-    vaultData = await fetch(`${API}/breg/vault/${ZID}`).then(r => r.json());
+    state.dashboard = await api(`/breg/dashboard/${ZID}`);
+    state.history = (await api(`/breg/history/${ZID}`)).logs || [];
+    state.vault = await api(`/breg/vault/${ZID}`);
+    state.profile = await api(`/breg/profile/${ZID}`);
 
-    // ✅ ESTA ES LA LÍNEA QUE PREGUNTAS
-    profileData = await fetch(`${API}/breg/profile/${ZID}`).then(r => r.json());
+    console.log('[STATE]', state);
 
   } catch (err) {
     console.error('LOAD DATA ERROR:', err);
   }
 }
 
-    
-    profileData = await fetch(`${API}/breg/profile/${ZID}`).then(r => r.json());
-
-    console.log('[DATA LOADED]', {
-      dashboard: state.dashboard,
-      history: state.history,
-      vault: state.vault
-    });
-
-    render();
-
-  } catch (err) {
-    console.error('[LOAD DATA ERROR]', err);
-  }
-}
 // ================= NAV =================
 function bindNav() {
   const buttons = document.querySelectorAll('.nav button');
@@ -77,7 +58,6 @@ function bindNav() {
     btn.addEventListener('click', () => {
       state.view = btn.dataset.view;
 
-      // feedback visual
       buttons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
@@ -96,6 +76,8 @@ function render() {
 // ================= DASHBOARD =================
 function dashboard() {
   const d = state.dashboard || {};
+  const p = state.profile || {};
+  const v = state.vault || {};
 
   app.innerHTML = `
     <div class="card">
@@ -109,8 +91,18 @@ function dashboard() {
     </div>
 
     <div class="card">
+      <h2>Total generado</h2>
+      <p>$${p.totalIncome || 0}</p>
+    </div>
+
+    <div class="card">
+      <h2>Gastos</h2>
+      <p>$${p.totalExpenses || 0}</p>
+    </div>
+
+    <div class="card">
       <h2>Vault</h2>
-      <p>$${d.vaultSavings || 0}</p>
+      <p>$${v.totalSaved || 0}</p>
     </div>
   `;
 }
@@ -131,7 +123,6 @@ function register() {
   `;
 
   const container = document.getElementById('materials');
-
   const options = ['Aluminum','Copper','PET'];
 
   options.forEach(m => {
@@ -139,19 +130,16 @@ function register() {
     btn.innerText = m;
     btn.className = 'chip';
 
-    btn.onclick = () => {
-      btn.classList.toggle('active');
-    };
-
+    btn.onclick = () => btn.classList.toggle('active');
     container.appendChild(btn);
   });
 
-  // 🔥 ESTA PARTE ES LA CLAVE
   document.getElementById('saveBtn').addEventListener('click', saveLog);
-        }
+}
 
+// ================= SAVE LOG =================
 async function saveLog() {
-  console.log('CLICK DETECTADO'); // 👈 DEBUG
+  console.log('CLICK DETECTADO');
 
   const selected = Array.from(document.querySelectorAll('.chip.active'))
     .map(el => el.innerText);
@@ -159,30 +147,14 @@ async function saveLog() {
   const kilos = parseFloat(document.getElementById('kilos').value);
   const price = parseFloat(document.getElementById('price').value);
 
-  if (!selected.length) {
-    alert('Selecciona material');
-    return;
-  }
-
-  if (!kilos || !price) {
-    alert('Datos inválidos');
-    return;
-  }
+  if (!selected.length) return alert('Selecciona material');
+  if (!kilos || !price) return alert('Datos inválidos');
 
   const total = kilos * price;
 
-  console.log('ENVIANDO:', {
-    zid: ZID,
-    materials: selected,
-    kilos,
-    price,
-    total
-  });
-
   try {
-    const res = await fetch(`${API}/breg/log`, {
+    await api('/breg/log', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         zid: ZID,
         materials: selected,
@@ -192,13 +164,11 @@ async function saveLog() {
       })
     });
 
-    const data = await res.json();
-
-    console.log('RESPUESTA:', data);
-
     alert('Guardado OK');
 
     await loadData();
+    state.view = 'dashboard';
+    render();
 
   } catch (err) {
     console.error(err);
@@ -208,18 +178,12 @@ async function saveLog() {
 
 // ================= WALLET =================
 function wallet() {
+  const v = state.vault || {};
+
   app.innerHTML = `
     <div class="card">
       <h2>Tu capital</h2>
-      <div class="big">$${state.vault?.totalSaved || 0}</div>
-      <div class="sub">Fondo protegido</div>
-    </div>
-
-    <div class="card">
-      <p>
-        Este dinero no se toca.  
-        Este dinero te construye.
-      </p>
+      <div>$${v.totalSaved || 0}</div>
     </div>
   `;
 }
