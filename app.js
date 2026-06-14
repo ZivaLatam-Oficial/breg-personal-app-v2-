@@ -37,11 +37,18 @@ async function loadData() {
 
 // ================= NAV =================
 function bindNav() {
-  document.querySelectorAll('.nav button').forEach(btn => {
-    btn.onclick = () => {
+  const buttons = document.querySelectorAll('.nav button');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
       state.view = btn.dataset.view;
+
+      // feedback visual
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
       render();
-    };
+    });
   });
 }
 
