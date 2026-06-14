@@ -42,9 +42,20 @@ async function api(path, options = {}) {
 
 async function loadData() {
   try {
-    state.dashboard = await api(`/breg/dashboard/${ZID}`);
-    state.history = await api(`/breg/history/${ZID}`);
-    state.vault = await api(`/breg/vault/${ZID}`);
+    dashboardData = await fetch(`${API}/breg/dashboard/${ZID}`).then(r => r.json());
+    historyData = await fetch(`${API}/breg/history/${ZID}`).then(r => r.json());
+    vaultData = await fetch(`${API}/breg/vault/${ZID}`).then(r => r.json());
+
+    // ✅ ESTA ES LA LÍNEA QUE PREGUNTAS
+    profileData = await fetch(`${API}/breg/profile/${ZID}`).then(r => r.json());
+
+  } catch (err) {
+    console.error('LOAD DATA ERROR:', err);
+  }
+}
+
+    
+    profileData = await fetch(`${API}/breg/profile/${ZID}`).then(r => r.json());
 
     console.log('[DATA LOADED]', {
       dashboard: state.dashboard,
@@ -212,5 +223,3 @@ function wallet() {
     </div>
   `;
 }
-
-document.addEventListener('DOMContentLoaded', init);
