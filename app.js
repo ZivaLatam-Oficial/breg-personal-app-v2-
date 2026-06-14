@@ -110,46 +110,88 @@ function register() {
     <div class="card">
       <h2>Registrar ingreso</h2>
 
-      <input id="kilos" placeholder="Kilos"/>
-      <input id="price" placeholder="Precio"/>
+      <div id="materials"></div>
 
-      <button onclick="save()">Guardar</button>
+      <input id="kilos" placeholder="Kilos" type="number"/>
+      <input id="price" placeholder="Precio" type="number"/>
+
+      <button id="saveBtn">Guardar</button>
     </div>
   `;
-}
+
+  const container = document.getElementById('materials');
+
+  const options = ['Aluminum','Copper','PET'];
+
+  options.forEach(m => {
+    const btn = document.createElement('button');
+    btn.innerText = m;
+    btn.className = 'chip';
+
+    btn.onclick = () => {
+      btn.classList.toggle('active');
+    };
+
+    container.appendChild(btn);
+  });
+
+  // 🔥 ESTA PARTE ES LA CLAVE
+  document.getElementById('saveBtn').addEventListener('click', saveLog);
+        }
 
 async function saveLog() {
-  const materials = Array.from(document.querySelectorAll('.chip.active')).map(el => el.innerText);
+  console.log('CLICK DETECTADO'); // 👈 DEBUG
+
+  const selected = Array.from(document.querySelectorAll('.chip.active'))
+    .map(el => el.innerText);
+
   const kilos = parseFloat(document.getElementById('kilos').value);
   const price = parseFloat(document.getElementById('price').value);
 
-  if (!materials.length || !kilos || !price) {
+  if (!selected.length) {
+    alert('Selecciona material');
+    return;
+  }
+
+  if (!kilos || !price) {
     alert('Datos inválidos');
     return;
   }
 
   const total = kilos * price;
 
+  console.log('ENVIANDO:', {
+    zid: ZID,
+    materials: selected,
+    kilos,
+    price,
+    total
+  });
+
   try {
-    await api('/breg/log', {
+    const res = await fetch(`${API}/breg/log`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         zid: ZID,
-        materials,
+        materials: selected,
         kilos,
         price,
         total
       })
     });
 
-    alert('Guardado correctamente');
+    const data = await res.json();
 
-    // 🔥 IMPORTANTE
-    await loadData(); // 👈 RECARGA DESPUÉS DE GUARDAR
+    console.log('RESPUESTA:', data);
+
+    alert('Guardado OK');
+
+    await loadData();
 
   } catch (err) {
-    alert('Error al guardar');
     console.error(err);
+    alert('Error real');
   }
 }
 
@@ -170,3 +212,5 @@ function wallet() {
     </div>
   `;
 }
+
+document.addEventListener('DOMContentLoaded', init);
