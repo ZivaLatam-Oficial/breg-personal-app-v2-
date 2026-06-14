@@ -1,6 +1,5 @@
 const API = 'https://ziva-core-backend-production-fb94.up.railway.app';
-const ZID = localStorage.getItem('zid') || 'test-zid-001';
-
+const ZID = 'test-zid-001';
 let state = {
   dashboard: null,
   history: [],
@@ -89,22 +88,18 @@ function dashboard() {
 
   app.innerHTML = `
     <div class="card">
-      <h2>Hoy generaste</h2>
-      <div class="big">$${d.dailyIncome || 0}</div>
-      <div class="sub">Ingreso diario</div>
+      <h2>Ingreso diario</h2>
+      <p>$${d.dailyIncome || 0}</p>
     </div>
 
     <div class="card">
-      <h2>Capital acumulado</h2>
-      <div class="big">$${state.vault?.totalSaved || 0}</div>
-      <div class="sub">15% protegido</div>
+      <h2>Ingreso mensual</h2>
+      <p>$${d.monthlyIncome || 0}</p>
     </div>
 
     <div class="card">
-      <p>
-        No estás trabajando por dinero.  
-        Estás construyendo un sistema.
-      </p>
+      <h2>Vault</h2>
+      <p>$${d.vaultSavings || 0}</p>
     </div>
   `;
 }
