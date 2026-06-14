@@ -1,52 +1,84 @@
+:root {
+  --bg: #F8FAFC;
+  --card: #FFFFFF;
+  --primary: #6C5CE7;
+  --primary-soft: #A78BFA;
+  --accent: #22C55E;
+  --text: #0F172A;
+  --subtext: #64748B;
+  --border: #E2E8F0;
+}
+
 body {
-  margin:0;
-  font-family: system-ui;
-  background:#0B0F1A;
-  color:white;
+  margin: 0;
+  font-family: Inter, sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .app {
-  max-width:420px;
-  margin:auto;
+  max-width: 420px;
+  margin: auto;
+  padding-bottom: 80px;
 }
 
-header {
-  display:flex;
-  justify-content:space-between;
-  padding:16px;
-}
-
-main {
-  padding:16px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
 }
 
 .card {
-  background:#151A2E;
-  padding:16px;
-  border-radius:16px;
-  margin-bottom:12px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px;
+  margin: 12px;
+  border: 1px solid var(--border);
+}
+
+h1, h2 {
+  margin: 0 0 8px;
+}
+
+.big {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.sub {
+  color: var(--subtext);
+  font-size: 13px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
 }
 
 button {
-  padding:12px;
-  border-radius:12px;
-  border:none;
-  background:#5B5FFF;
-  color:white;
-  width:100%;
-  margin-top:10px;
+  margin-top: 12px;
+  padding: 12px;
+  width: 100%;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
 }
 
-nav {
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  display:flex;
-  background:#111;
+.nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  background: white;
 }
 
-nav button {
-  flex:1;
-  background:none;
+.nav button {
+  flex: 1;
+  background: none;
+  color: var(--subtext);
 }
