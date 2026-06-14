@@ -22,6 +22,11 @@ body {
   padding-bottom: 80px;
 }
 
+.nav button.active {
+  color: var(--primary);
+  font-weight: bold;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
