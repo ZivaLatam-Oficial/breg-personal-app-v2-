@@ -1,0 +1,52 @@
+body {
+  margin:0;
+  font-family: system-ui;
+  background:#0B0F1A;
+  color:white;
+}
+
+.app {
+  max-width:420px;
+  margin:auto;
+}
+
+header {
+  display:flex;
+  justify-content:space-between;
+  padding:16px;
+}
+
+main {
+  padding:16px;
+}
+
+.card {
+  background:#151A2E;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:12px;
+}
+
+button {
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  background:#5B5FFF;
+  color:white;
+  width:100%;
+  margin-top:10px;
+}
+
+nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  display:flex;
+  background:#111;
+}
+
+nav button {
+  flex:1;
+  background:none;
+}
