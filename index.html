@@ -6,28 +6,25 @@
   <title>BREG v2</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
 
 <div class="app">
 
-  <header>
+  <header class="header">
     <h1>BREG</h1>
     <span id="status">●</span>
   </header>
 
   <main id="app"></main>
 
-  <nav>
-    <button onclick="navigate('dashboard')">Inicio</button>
-    <button onclick="navigate('register')">Registrar</button>
-    <button onclick="navigate('history')">Historial</button>
-    <button onclick="navigate('vault')">Capital</button>
+  <nav class="nav">
+    <button data-view="dashboard">Inicio</button>
+    <button data-view="register">Registrar</button>
+    <button data-view="wallet">Capital</button>
   </nav>
 
 </div>
 
 <script src="app.js"></script>
-
 </body>
 </html>
