@@ -4,61 +4,75 @@ const ZID = localStorage.getItem('zid') || 'test-zid-001';
 let state = {
   dashboard: null,
   history: [],
-  vault: null
+  vault: null,
+  view: 'dashboard'
 };
 
-let current = 'dashboard';
-
-init();
+const app = document.getElementById('app');
 
 // ================= INIT =================
-function init() {
-  loadData();
-}
+init();
 
-// ================= NAV =================
-function navigate(view) {
-  current = view;
+async function init() {
+  bindNav();
+  await loadData();
   render();
 }
 
 // ================= API =================
-async function loadData() {
-  try {
-    state.dashboard = await fetch(`${API}/breg/dashboard/${ZID}`).then(r=>r.json());
-    state.history = await fetch(`${API}/breg/history/${ZID}`).then(r=>r.json()).then(r=>r.logs);
-    state.vault = await fetch(`${API}/breg/vault/${ZID}`).then(r=>r.json());
-  } catch(e) {
-    console.error(e);
-  }
+async function api(path, options = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
 
-  render();
+  return res.json();
+}
+
+async function loadData() {
+  state.dashboard = await api(`/breg/dashboard/${ZID}`);
+  state.history = (await api(`/breg/history/${ZID}`)).logs;
+  state.vault = await api(`/breg/vault/${ZID}`);
+}
+
+// ================= NAV =================
+function bindNav() {
+  document.querySelectorAll('.nav button').forEach(btn => {
+    btn.onclick = () => {
+      state.view = btn.dataset.view;
+      render();
+    };
+  });
 }
 
 // ================= RENDER =================
 function render() {
-  if(current==='dashboard') return dashboard();
-  if(current==='register') return register();
-  if(current==='history') return history();
-  if(current==='vault') return vault();
+  if (state.view === 'dashboard') return dashboard();
+  if (state.view === 'register') return register();
+  if (state.view === 'wallet') return wallet();
 }
 
 // ================= DASHBOARD =================
 function dashboard() {
-  document.getElementById('app').innerHTML = `
+  const d = state.dashboard || {};
+
+  app.innerHTML = `
     <div class="card">
-      <h3>Hoy generaste</h3>
-      <h1>$${state.dashboard?.dailyIncome || 0}</h1>
+      <h2>Hoy generaste</h2>
+      <div class="big">$${d.dailyIncome || 0}</div>
+      <div class="sub">Ingreso diario</div>
     </div>
 
     <div class="card">
-      <h3>Tu capital</h3>
-      <h1>$${state.vault?.totalSaved || 0}</h1>
+      <h2>Capital acumulado</h2>
+      <div class="big">$${state.vault?.totalSaved || 0}</div>
+      <div class="sub">15% protegido</div>
     </div>
 
     <div class="card">
       <p>
-        Cada ingreso que generas construye estabilidad.
+        No estás trabajando por dinero.  
+        Estás construyendo un sistema.
       </p>
     </div>
   `;
@@ -66,9 +80,9 @@ function dashboard() {
 
 // ================= REGISTER =================
 function register() {
-  document.getElementById('app').innerHTML = `
+  app.innerHTML = `
     <div class="card">
-      <h3>Nuevo ingreso</h3>
+      <h2>Registrar ingreso</h2>
 
       <input id="kilos" placeholder="Kilos"/>
       <input id="price" placeholder="Precio"/>
@@ -83,45 +97,37 @@ async function save() {
   const price = Number(document.getElementById('price').value);
   const total = kilos * price;
 
-  await fetch(`${API}/breg/log`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+  await api('/breg/log', {
+    method: 'POST',
     body: JSON.stringify({
       zid: ZID,
-      materials:['Aluminum'],
+      materials: ['Aluminum'],
       kilos,
       price,
       total,
-      zone:'Santiago'
+      zone: 'Santiago'
     })
   });
 
-  alert('Guardado');
-  loadData();
+  await loadData();
+  state.view = 'dashboard';
+  render();
 }
 
-// ================= HISTORY =================
-function history() {
-  document.getElementById('app').innerHTML = state.history.map(h=>`
+// ================= WALLET =================
+function wallet() {
+  app.innerHTML = `
     <div class="card">
-      <strong>$${h.total}</strong>
-      <p>${h.materials.join(', ')}</p>
-    </div>
-  `).join('');
-}
-
-// ================= VAULT =================
-function vault() {
-  document.getElementById('app').innerHTML = `
-    <div class="card">
-      <h3>Total acumulado</h3>
-      <h1>$${state.vault?.totalSaved || 0}</h1>
+      <h2>Tu capital</h2>
+      <div class="big">$${state.vault?.totalSaved || 0}</div>
+      <div class="sub">Fondo protegido</div>
     </div>
 
     <div class="card">
       <p>
-        El 15% de cada ingreso se guarda automáticamente.
+        Este dinero no se toca.  
+        Este dinero te construye.
       </p>
     </div>
   `;
-    }
+}
