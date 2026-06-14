@@ -21,20 +21,44 @@ async function init() {
 
 // ================= API =================
 async function api(path, options = {}) {
-  const res = await fetch(API + path, {
+  const url = `${API}${path}`;
+
+  console.log('[API CALL]', url); // 👈 DEBUG
+
+  const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...options
   });
 
-  return res.json();
+  if (!res.ok) {
+    console.error('[API ERROR]', await res.text());
+    throw new Error('API error');
+  }
+
+  const data = await res.json();
+  console.log('[API RESPONSE]', data); // 👈 DEBUG
+
+  return data;
 }
 
 async function loadData() {
-  state.dashboard = await api(`/breg/dashboard/${ZID}`);
-  state.history = (await api(`/breg/history/${ZID}`)).logs;
-  state.vault = await api(`/breg/vault/${ZID}`);
-}
+  try {
+    state.dashboard = await api(`/breg/dashboard/${ZID}`);
+    state.history = await api(`/breg/history/${ZID}`);
+    state.vault = await api(`/breg/vault/${ZID}`);
 
+    console.log('[DATA LOADED]', {
+      dashboard: state.dashboard,
+      history: state.history,
+      vault: state.vault
+    });
+
+    render();
+
+  } catch (err) {
+    console.error('[LOAD DATA ERROR]', err);
+  }
+}
 // ================= NAV =================
 function bindNav() {
   const buttons = document.querySelectorAll('.nav button');
@@ -99,26 +123,39 @@ function register() {
   `;
 }
 
-async function save() {
-  const kilos = Number(document.getElementById('kilos').value);
-  const price = Number(document.getElementById('price').value);
+async function saveLog() {
+  const materials = Array.from(document.querySelectorAll('.chip.active')).map(el => el.innerText);
+  const kilos = parseFloat(document.getElementById('kilos').value);
+  const price = parseFloat(document.getElementById('price').value);
+
+  if (!materials.length || !kilos || !price) {
+    alert('Datos inválidos');
+    return;
+  }
+
   const total = kilos * price;
 
-  await api('/breg/log', {
-    method: 'POST',
-    body: JSON.stringify({
-      zid: ZID,
-      materials: ['Aluminum'],
-      kilos,
-      price,
-      total,
-      zone: 'Santiago'
-    })
-  });
+  try {
+    await api('/breg/log', {
+      method: 'POST',
+      body: JSON.stringify({
+        zid: ZID,
+        materials,
+        kilos,
+        price,
+        total
+      })
+    });
 
-  await loadData();
-  state.view = 'dashboard';
-  render();
+    alert('Guardado correctamente');
+
+    // 🔥 IMPORTANTE
+    await loadData(); // 👈 RECARGA DESPUÉS DE GUARDAR
+
+  } catch (err) {
+    alert('Error al guardar');
+    console.error(err);
+  }
 }
 
 // ================= WALLET =================
