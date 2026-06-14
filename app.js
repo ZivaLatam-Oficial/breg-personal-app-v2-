@@ -11,7 +11,7 @@ let state = {
 const app = document.getElementById('app');
 
 // ================= INIT =================
-init();
+document.addEventListener('DOMContentLoaded', init); 
 
 async function init() {
   bindNav();
